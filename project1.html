@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ANR Chatbot</title>
+    <style>
+        :root {
+            --bg-dark: #121212;
+            --text-dark: white;
+            --chat-dark: #1f1f1f;
+            --user-dark: cyan;
+            --bot-dark: #333;
+
+            --bg-light: #f5f5f5;
+            --text-light: black;
+            --chat-light: white;
+            --user-light: #00bcd4;
+            --bot-light: #ddd;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            transition: 0.3s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            flex-direction: column;
+        }
+
+        .chat-container {
+            width: 400px;
+            height: 500px;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            border: 2px solid cyan;
+        }
+
+        .chatbox {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .message {
+            padding: 10px;
+            margin: 5px;
+            max-width: 75%;
+            border-radius: 10px;
+            opacity: 0;
+            animation: fadeIn 0.5s ease-in forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .input-container {
+            display: flex;
+            padding: 10px;
+        }
+
+        .input-box {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            outline: none;
+            font-size: 16px;
+            border-radius: 5px;
+        }
+
+        .btn {
+            padding: 10px;
+            background: cyan;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .btn:hover {
+            background: #00d4ff;
+        }
+
+        .toggle-btn {
+            padding: 8px;
+            background: yellow;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        /* Dark Mode */
+        body.dark {
+            background: var(--bg-dark);
+            color: var(--text-dark);
+        }
+
+        .chat-container.dark {
+            background: var(--chat-dark);
+        }
+
+        .message.user.dark {
+            background: var(--user-dark);
+            color: black;
+        }
+
+        .message.bot.dark {
+            background: var(--bot-dark);
+            color: white;
+        }
+
+        /* Light Mode */
+        body.light {
+            background: var(--bg-light);
+            color: var(--text-light);
+        }
+
+        .chat-container.light {
+            background: var(--chat-light);
+        }
+
+        .message.user.light {
+            background: var(--user-light);
+            color: black;
+        }
+
+        .message.bot.light {
+            background: var(--bot-light);
+            color: black;
+        }
+    </style>
+</head>
+<body class="dark">
+    <h1>Welcome to ANR Chatbot</h1>
+    <button class="toggle-btn" onclick="toggleTheme()">🌗 Toggle Theme</button>
+    <div class="chat-container dark" id="chatContainer">
+        <div class="chatbox" id="chatbox">
+            <div class="message bot dark"><b>ANR:</b> Hi! Ask me about my portfolio, projects, math, or random facts.</div>
+        </div>
+        <div class="input-container">
+            <input type="text" class="input-box" id="userInput" placeholder="Type a message..." onkeypress="handleKeyPress(event)" />
+            <button class="btn" onclick="chat()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        const responses = {
+            "hi": "Hello! How can I assist you?",
+            "hello": "Hey there! What do you need?",
+            "bye": "Goodbye! Have a great day!",
+            "how are you": "I'm just code, but I'm functioning perfectly!",
+            "your name": "I'm ANR, your AI assistant.",
+            "who created you": "I was developed as part of a portfolio project!",
+            "projects": "My creator has built AI Chatbot, 3D Portfolio, Weather App, Task Manager, and more!",
+            "math help": "Type a math problem like '15 + 7' or '50 / 5'.",
+            "html": "HTML structures webpages. It's like the skeleton of a website!",
+            "css": "CSS styles webpages, adding colors, fonts, and layouts.",
+            "javascript": "JavaScript makes webpages interactive and dynamic.",
+            "what is your purpose": "I'm here to showcase a developer's portfolio and help with various tasks!",
+            "tell me a joke": "Why do programmers prefer dark mode? Because light attracts bugs!",
+            "ai": "AI stands for Artificial Intelligence. I use simple logic to reply!",
+            "weather app": "A weather app fetches live weather data and displays it on a user-friendly UI.",
+            "task manager": "A Task Manager app helps users organize tasks with deadlines and priorities.",
+            "fun fact": "Did you know? The first website ever created is still online at info.cern.ch!",
+            "python": "Python is a versatile programming language used for AI, automation, and web development.",
+            "favorite language": "I like all programming languages, but JavaScript makes me work!",
+            "dark mode": "Click the 🌗 Toggle Theme button to switch between light and dark mode!",
+            "light mode": "Click the 🌗 Toggle Theme button to switch between light and dark mode!",
+            "who is the best coder": "The best coder is the one who keeps learning and improving!",
+            "what is 2 + 2": "The answer is 4!",
+            "your creator": "My creator is a passionate developer building cool projects!",
+            "hobbies": "I enjoy chatting with users and solving math problems!",
+            "open source": "Open-source software allows developers to contribute and improve code together!",
+            "css flexbox": "Flexbox helps align elements on a webpage in a responsive way.",
+            "your goal": "My goal is to help users explore projects and have fun!",
+            "dark or light": "I support both dark and light mode! You can switch anytime.",
+            "github": "GitHub is a platform for hosting and sharing code with other developers."
+        };
+
+        function chat() {
+            let userInput = document.getElementById("userInput").value.toLowerCase().trim();
+            let chatbox = document.getElementById("chatbox");
+
+            if (!userInput) return;
+            
+            chatbox.innerHTML += `<div class="message user ${document.body.className}"><b>You:</b> ${userInput}</div>`;
+            document.getElementById("userInput").value = "";
+
+            setTimeout(() => {
+                let botReply = responses[userInput] || processMath(userInput) || "I'm not sure about that. Try asking about projects, tech, or math!";
+                chatbox.innerHTML += `<div class="message bot ${document.body.className}"><b>ANR:</b> ${botReply}</div>`;
+                chatbox.scrollTop = chatbox.scrollHeight;
+            }, 1000);
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === "Enter") chat();
+        }
+
+        function processMath(input) {
+            let mathMatch = input.match(/(\d+)\s*([\+\-\*\/])\s*(\d+)/);
+            return mathMatch ? `The answer is: ${eval(mathMatch[1] + mathMatch[2] + mathMatch[3])}` : null;
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle("dark");
+            document.body.classList.toggle("light");
+        }
+    </script>
+</body>
+</html>
